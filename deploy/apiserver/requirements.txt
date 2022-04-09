@@ -1,0 +1,7 @@
+tensorflow
+keras
+Pillow
+redis
+prometheus-fastapi-instrumentator
+prometheus_client
+python-multipart

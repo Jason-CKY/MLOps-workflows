@@ -1,0 +1,5 @@
+mlflow
+psycopg2-binary
+pymysql
+boto3
+minio
