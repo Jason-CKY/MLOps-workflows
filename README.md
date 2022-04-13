@@ -1,4 +1,8 @@
-# Deploy and Scale Machine Learning Models with Keras, FastAPI, Redis and Docker Swarm
+# MLOps Workflows
+
+This repository contains workflows to version data with dvc, store models with Mlflow, deploy them with a scalable deployment architecture.
+
+## Deployment Architecture
 Serve a production-ready and scalable Keras-based deep learning model image classification using FastAPI, Redis and Docker Swarm. Based off this [series of blog posts](https://www.pyimagesearch.com/2018/02/05/deep-learning-production-keras-redis-flask-apache/).
 
 ## How to Use
