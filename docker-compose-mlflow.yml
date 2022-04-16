@@ -45,33 +45,6 @@ services:
       fi
       "
 
-  artifacts-server:
-    build:
-      context: .
-      dockerfile: "${DOCKERFILE:-Dockerfile}"
-    container_name: artifact-server
-    depends_on:
-      - minio-create-bucket
-    networks:
-      - mlflow
-      - mlflow-client
-    expose:
-      - "5500"
-    ports:
-      - "5500:5500"
-    environment:
-      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
-      AWS_ACCESS_KEY_ID: "${MINIO_ROOT_USER}"
-      AWS_SECRET_ACCESS_KEY: "${MINIO_ROOT_PASSWORD}"
-    command: >
-      mlflow server
-      --host 0.0.0.0
-      --port 5500
-      --artifacts-destination s3://bucket
-      --gunicorn-opts "--log-level debug"
-      --serve-artifacts
-      --artifacts-only
-
   postgres:
     image: postgres
     container_name: mlflow-postgres
@@ -88,11 +61,10 @@ services:
   tracking-server:
     build:
       context: .
-      dockerfile: "${DOCKERFILE:-Dockerfile}"
+      dockerfile: deploy/mlflow/Dockerfile
     container_name: mlflow
     depends_on:
       - postgres
-      - artifacts-server
     networks:
       - mlflow
       - mlflow-client
@@ -101,18 +73,23 @@ services:
     ports:
       # MLflow UI is available at http://localhost:5000
       - "5000:5000"
+    environment:
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      AWS_ACCESS_KEY_ID: "${MINIO_ROOT_USER}"
+      AWS_SECRET_ACCESS_KEY: "${MINIO_ROOT_PASSWORD}"
     command: >
       mlflow server
       --host 0.0.0.0
       --port 5000
       --backend-store-uri postgresql://user:password@postgres:5432/db
-      --default-artifact-root http://artifacts-server:5500/api/2.0/mlflow-artifacts/artifacts/experiments
+      --artifacts-destination s3://bucket
+      --serve-artifacts
       --gunicorn-opts "--log-level debug"
 
   client:
     build:
       context: .
-      dockerfile: "${DOCKERFILE:-Dockerfile}"
+      dockerfile: deploy/mlflow/Dockerfile
     container_name: client
     depends_on:
       - tracking-server
