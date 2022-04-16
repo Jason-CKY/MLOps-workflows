@@ -6,7 +6,6 @@ services:
     expose:
       - "9000"
     ports:
-      - "9000:9000"
       # MinIO Console is available at http://localhost:9001
       - "9001:9001"
     networks:
@@ -54,9 +53,9 @@ services:
     volumes:
       - mlflow-db:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: db
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: "${POSTGRES_DB}"
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
 
   tracking-server:
     build:
@@ -67,7 +66,7 @@ services:
       - postgres
     networks:
       - mlflow
-      - mlflow-client
+      - deployml_network
     expose:
       - "5000"
     ports:
@@ -77,11 +76,12 @@ services:
       MLFLOW_S3_ENDPOINT_URL: http://minio:9000
       AWS_ACCESS_KEY_ID: "${MINIO_ROOT_USER}"
       AWS_SECRET_ACCESS_KEY: "${MINIO_ROOT_PASSWORD}"
+      BACKEND_STORE_URI: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}"
     command: >
       mlflow server
       --host 0.0.0.0
       --port 5000
-      --backend-store-uri postgresql://user:password@postgres:5432/db
+      --backend-store-uri $$BACKEND_STORE_URI
       --artifacts-destination s3://bucket
       --serve-artifacts
       --gunicorn-opts "--log-level debug"
@@ -94,7 +94,7 @@ services:
     depends_on:
       - tracking-server
     networks:
-      - mlflow-client
+      - deployml_network
     volumes:
       - ./mlflow_upload.py:/app/mlflow_upload.py
     environment:
@@ -103,7 +103,7 @@ services:
 
 networks:
   mlflow:
-  mlflow-client:
+  deployml_network:
 
 volumes:
   mlflow-artifact:

@@ -29,7 +29,7 @@ Serve a production-ready and scalable machine-learning model using FastAPI, Redi
 
 The service is split between the front-facing API, and the backend server that serves the model prediction. This allows us to dynamically scale either the front-facing API or the model server depending on load and scale of requests.
 
-## Mlflow architecture
+## [Mlflow architecture](https://mlflow.org/docs/latest/tracking.html#scenario-5-mlflow-tracking-server-enabled-with-proxied-artifact-storage-access)
 
 ![Mlflow Architecture](assets/mlflow_architecture.png)
 
