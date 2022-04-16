@@ -94,8 +94,8 @@ The `--no-web` flag runs locust in CLI mode. You may also want to use locust's w
 
 ## TODOs
 
-* add [mlflow integration](https://github.com/mlflow/mlflow/tree/master/examples/mlflow_artifacts)
-* Makefile for one-command deployment
-* add dvc
-* add starting container to train a model and publish to mlflow
-* readme documentation
+* Edit mlflow_upload.py file to upload imagenet model to mlflow as starting point
+* Combine base and mlflow docker-compose file for one command deployment of API with models already on mlflow
+* Combine deployment with monitoring compose files
+* Create a base monitoring dashboard.json file as a template
+* Make sure locust test works
