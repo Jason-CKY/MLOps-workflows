@@ -13,8 +13,7 @@ mlflow.set_tracking_uri(os.environ['MLFLOW_TRACKING_URI'])
 loaded_model = mlflow.pyfunc.load_model(model_path)
 client = MlflowClient()
 
-# TODO: fix this such that it will grab latest Staging/Production based on env
-production_run_id = [ model.run_id for model in client.get_registered_model(model_path.split('/')[1]).latest_versions if model.current_stage == 'Production' ][0]
+production_run_id = [ model.run_id for model in client.get_registered_model(model_path.split('/')[1]).latest_versions if model.current_stage == model_path.split('/')[-1] ][0]
 
 # local_path = client.download_artifacts(production_run_id, "scaler.pkl")
 # scaler = pickle.load(open(local_path, "rb"))
