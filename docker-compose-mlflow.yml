@@ -1,0 +1,130 @@
+version: "3"
+services:
+  minio:
+    image: minio/minio
+    container_name: minio
+    expose:
+      - "9000"
+    ports:
+      - "9000:9000"
+      # MinIO Console is available at http://localhost:9001
+      - "9001:9001"
+    networks:
+      - mlflow
+    volumes:
+      - mlflow-artifact:/data
+    environment:
+      MINIO_ROOT_USER: "${MINIO_ROOT_USER}"
+      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD}"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 1s
+      timeout: 10s
+      retries: 5
+    # Note there is no bucket by default
+    command: server /data --console-address ":9001"
+
+  minio-create-bucket:
+    image: minio/mc
+    container_name: mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: "${MINIO_ROOT_USER}"
+      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD}"
+    networks:
+      - mlflow
+    entrypoint: >
+      bash -c "
+      mc alias set minio http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD &&
+      if ! mc ls minio | grep --quiet bucket; then
+        mc mb minio/bucket
+      else
+        echo 'bucket already exists'
+      fi
+      "
+
+  artifacts-server:
+    build:
+      context: .
+      dockerfile: "${DOCKERFILE:-Dockerfile}"
+    container_name: artifact-server
+    depends_on:
+      - minio-create-bucket
+    networks:
+      - mlflow
+      - mlflow-client
+    expose:
+      - "5500"
+    ports:
+      - "5500:5500"
+    environment:
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      AWS_ACCESS_KEY_ID: "${MINIO_ROOT_USER}"
+      AWS_SECRET_ACCESS_KEY: "${MINIO_ROOT_PASSWORD}"
+    command: >
+      mlflow server
+      --host 0.0.0.0
+      --port 5500
+      --artifacts-destination s3://bucket
+      --gunicorn-opts "--log-level debug"
+      --serve-artifacts
+      --artifacts-only
+
+  postgres:
+    image: postgres
+    container_name: mlflow-postgres
+    restart: always
+    networks:
+      - mlflow
+    volumes:
+      - mlflow-db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+
+  tracking-server:
+    build:
+      context: .
+      dockerfile: "${DOCKERFILE:-Dockerfile}"
+    container_name: mlflow
+    depends_on:
+      - postgres
+      - artifacts-server
+    networks:
+      - mlflow
+      - mlflow-client
+    expose:
+      - "5000"
+    ports:
+      # MLflow UI is available at http://localhost:5000
+      - "5000:5000"
+    command: >
+      mlflow server
+      --host 0.0.0.0
+      --port 5000
+      --backend-store-uri postgresql://user:password@postgres:5432/db
+      --default-artifact-root http://artifacts-server:5500/api/2.0/mlflow-artifacts/artifacts/experiments
+      --gunicorn-opts "--log-level debug"
+
+  client:
+    build:
+      context: .
+      dockerfile: "${DOCKERFILE:-Dockerfile}"
+    container_name: client
+    depends_on:
+      - tracking-server
+    networks:
+      - mlflow-client
+    environment:
+      MLFLOW_TRACKING_URI: http://tracking-server:5000
+
+networks:
+  mlflow:
+  mlflow-client:
+
+volumes:
+  mlflow-artifact:
+  mlflow-db:
