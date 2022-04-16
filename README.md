@@ -8,6 +8,7 @@ This repository contains workflows to version data with dvc, store models with M
 * Production-ready model serving architecture
 * Mlflow architecture
 * DVC Integration
+* Monitoring
 * Deploying services
 * Load Testing
 * TODOs
@@ -15,6 +16,8 @@ This repository contains workflows to version data with dvc, store models with M
 ## The Stack
 
 [Mlflow](https://github.com/mlflow/mlflow) is used to track the machine-learning model lifecycle, storing the hyperparameters and metrics of each model and versioning machine-learning models. It is also used as an artifact store to store the actual machine-learning model and used to download the model object using the mlflow python library.
+
+![MLOps Tech Stack](assets/Valohai_Tech_Stack.png)
 
 ## Production-ready model serving architecture
 
@@ -45,6 +48,10 @@ Notes:
 
 [DVC](https://dvc.org/) is used to manage training/raw data used to train models stored on mlflow. This allows data versioning for mlops.
 
+## Monitoring
+
+The FastAPI service exposes a prometheus metrics endpoint and grafana is used to create a dashboard to monitor the health of the various deployed services.
+
 ## Deploying Services
 
 ### Prerequisites
@@ -56,6 +63,10 @@ Make sure you have a modern version of `docker` (>1.13.0)and `docker-compose` in
 #### Spin up mlflow with s3 artifact store and postgres data store
 
 Run `make start-mlflow`
+
+#### Spin up grafana monitoring service
+
+Run `make start-grafana`
 
 #### Spin up deployment API service
 
