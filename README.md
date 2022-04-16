@@ -4,18 +4,48 @@ This repository contains workflows to version data with dvc, store models with M
 
 ## Content Page
 
-* Deployment Architecture
+* The Stack
+* Production-ready model serving architecture
 * Mlflow architecture
-* DVC Inetgration 
+* DVC Integration
 * Deploying services
 * Load Testing
 * TODOs
 
-## Deployment Architecture
+## The Stack
 
-Serve a production-ready and scalable Keras-based deep learning model image classification using FastAPI, Redis and Docker Swarm. Based off this [series of blog posts](https://www.pyimagesearch.com/2018/02/05/deep-learning-production-keras-redis-flask-apache/).
+[Mlflow](https://github.com/mlflow/mlflow) is used to track the machine-learning model lifecycle, storing the hyperparameters and metrics of each model and versioning machine-learning models. It is also used as an artifact store to store the actual machine-learning model and used to download the model object using the mlflow python library.
 
-## How to Use
+## Production-ready model serving architecture
+
+Serve a production-ready and scalable machine-learning model using FastAPI, Redis and Docker. Based off this [series of blog posts](https://www.pyimagesearch.com/2018/02/05/deep-learning-production-keras-redis-flask-apache/).
+
+![Production API architecture](assets/Production_APIs.png)
+
+### Scalable
+
+The service is split between the front-facing API, and the backend server that serves the model prediction. This allows us to dynamically scale either the front-facing API or the model server depending on load and scale of requests.
+
+## Mlflow architecture
+
+![Mlflow Architecture](assets/mlflow_architecture.png)
+
+Mlflow is deployed in a remote tracking server enabled with proxied artifact storage access. This allows a remotely managed mlflow instance that multiple clients in an organisation/company can upload/track their machine-learning experiments. This managed mlflow instance can also act as the central machine-learning model registry that offers discoverability to software engineers and data scientists in the organisation.
+
+Notes:
+
+* `--host` exposes the service on all interfaces
+* `--port` exposes the mlflow service on the specified port
+* `--backend-store-uri` configures the type of backend store, sets to a postgresql database instance
+* `--serve-artifacts` enables the MLflow Artifacts service endpoints to enable proxied serving of artifacts through the REST API
+* `--artifacts-destination` specifies the base artifact location from which to resolve artifact upload/download/list requests. In this examples, we're using a local directory `./mlartifacts`, but it can be changed to a s3 bucket or
+* `--gunicorn-opts "--log-level debug"` is specified to print out request logs but can be omitted if unnecessary.
+
+## DVC Integration
+
+[DVC](https://dvc.org/) is used to manage training/raw data used to train models stored on mlflow. This allows data versioning for mlops.
+
+## Deploying Services
 
 ### Prerequisites
 
@@ -23,7 +53,13 @@ Make sure you have a modern version of `docker` (>1.13.0)and `docker-compose` in
 
 ### Run with Docker Compose
 
-Simply run `docker-compose up` to spin up all the services on your local machine.
+#### Spin up mlflow with s3 artifact store and postgres data store
+
+Run `make start-mlflow`
+
+#### Spin up deployment API service
+
+Run `make deploy-all`
 
 ### Test Service
 
@@ -47,8 +83,8 @@ The `--no-web` flag runs locust in CLI mode. You may also want to use locust's w
 
 ## TODOs
 
-* add mlflow integration (https://github.com/mlflow/mlflow/tree/master/examples/mlflow_artifacts)
+* add [mlflow integration](https://github.com/mlflow/mlflow/tree/master/examples/mlflow_artifacts)
+* Makefile for one-command deployment
 * add dvc
 * add starting container to train a model and publish to mlflow
-* Makefile
 * readme documentation

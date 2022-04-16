@@ -95,8 +95,11 @@ services:
       - tracking-server
     networks:
       - mlflow-client
+    volumes:
+      - ./mlflow_upload.py:/app/mlflow_upload.py
     environment:
       MLFLOW_TRACKING_URI: http://tracking-server:5000
+    command: python mlflow_upload.py
 
 networks:
   mlflow:
