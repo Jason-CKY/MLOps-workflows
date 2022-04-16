@@ -4,14 +4,14 @@ This repository contains workflows to version data with dvc, store models with M
 
 ## Content Page
 
-* The Stack
-* Production-ready model serving architecture
-* Mlflow architecture
-* DVC Integration
-* Monitoring
-* Deploying services
-* Load Testing
-* TODOs
+* [The Stack](#the-stack)
+* [Production-ready model serving architecture](#production-ready-model-serving-architecture)
+* [Mlflow architecture](#mlflow-architecture)
+* [DVC Integration](#dvc-integration)
+* [Monitoring](#monitoring)
+* [Deploying services](#deploying-services)
+* [Load Testing](#load-testing)
+* [TODOs](#todos)
 
 ## The Stack
 
