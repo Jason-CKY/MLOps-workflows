@@ -99,3 +99,5 @@ The `--no-web` flag runs locust in CLI mode. You may also want to use locust's w
 * Combine deployment with monitoring compose files
 * Create a base monitoring dashboard.json file as a template
 * Make sure locust test works
+* Add Kubernetes deployment files
+* Add DVC Integration with github workflows
