@@ -33,7 +33,7 @@ The service is split between the front-facing API, and the backend server that s
 
 ![Mlflow Architecture](assets/mlflow_architecture.png)
 
-Mlflow is deployed in a remote tracking server enabled with proxied artifact storage access. This allows a remotely managed mlflow instance that multiple clients in an organisation/company can upload/track their machine-learning experiments. This managed mlflow instance can also act as the central machine-learning model registry that offers discoverability to software engineers and data scientists in the organisation.
+Mlflow is deployed in a remote tracking server enabled with proxied artifact storage access. This allows a remotely managed mlflow instance that multiple clients in an organisation/company can upload/track their machine-learning experiments onto. This managed mlflow instance can also act as the central machine-learning model registry that offers discoverability to software engineers and data scientists in the organisation.
 
 Notes:
 
