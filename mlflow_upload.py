@@ -5,6 +5,7 @@ from pprint import pprint
 import mlflow
 from mlflow.tracking import MlflowClient
 import torch
+import requests
 
 def save_text(path, text):
     with open(path, "w") as f:
@@ -15,10 +16,20 @@ def upload_model():
     model_name = 'imagenet'
     client = MlflowClient()
     model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18', pretrained=True)
-    with mlflow.start_run() as run:
+    with mlflow.start_run() as run, tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_path = os.path.join(tmp_dir, "imagenet_classes.txt")
+        resp = requests.get("https://raw.githubusercontent.com/pytorch/hub/master/imagenet_classes.txt")
+        save_text(tmp_path, resp.text)
+        mlflow.log_artifact(tmp_path)
         mlflow.pytorch.log_model(model, "resnet18-imagenet", registered_model_name=model_name)
-    with mlflow.start_run() as run:
+
+    with mlflow.start_run() as run, tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_path = os.path.join(tmp_dir, "imagenet_classes.txt")
+        resp = requests.get("https://raw.githubusercontent.com/pytorch/hub/master/imagenet_classes.txt")
+        save_text(tmp_path, resp.text)
+        mlflow.log_artifact(tmp_path)
         mlflow.pytorch.log_model(model, "resnet18-imagenet", registered_model_name=model_name)
+
     client.transition_model_version_stage(model_name, "1", "production")
     client.transition_model_version_stage(model_name, "2", "staging")
 

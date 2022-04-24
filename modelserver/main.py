@@ -7,37 +7,23 @@ import base64
 import json
 import os
 import logging
-import sys
 import time
-
-from keras.applications import ResNet50
-from keras.applications import imagenet_utils
+import io
 import numpy as np
 import redis
+
+import torch
+from torchvision import transforms
+from PIL import Image
 
 logging.basicConfig(level=logging.INFO)
 
 logging.info("Downloading model")
-from download_model import loaded_model
+from download_model import loaded_model, categories
 logging.info("Model downloaded")
 
 # Connect to Redis server
 db = redis.StrictRedis(host=os.environ.get("REDIS_HOST"))
-
-def base64_decode_image(a, dtype, shape):
-    # If this is Python 3, we need the extra step of encoding the
-    # serialized NumPy string as a byte object
-    if sys.version_info.major == 3:
-        a = bytes(a, encoding="utf-8")
-
-    # Convert the string to a NumPy array using the supplied data
-    # type and target shape
-    a = np.frombuffer(base64.decodestring(a), dtype=dtype)
-    a = a.reshape(shape)
-
-    # Return the decoded image
-    return a
-
 
 def classify_process():
     # Continually poll for new images to classify
@@ -53,13 +39,17 @@ def classify_process():
         for q in queue:
             # Deserialize the object and obtain the input image
             q = json.loads(q.decode("utf-8"))
-            image = base64_decode_image(q["image"],
-                                        os.environ.get("IMAGE_DTYPE"),
-                                        (1, int(os.environ.get("IMAGE_HEIGHT")),
-                                         int(os.environ.get("IMAGE_WIDTH")),
-                                         int(os.environ.get("IMAGE_CHANS")))
-                                        )
-
+            
+            input_image = Image.open(io.BytesIO(base64.b64decode(q["image"])))
+            if input_image.mode != "RGB":
+                input_image = input_image.convert("RGB")
+            input_image = input_image.resize((int(os.environ.get("IMAGE_WIDTH")), int(os.environ.get("IMAGE_HEIGHT"))))
+            
+            preprocess = transforms.Compose([
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            ])
+            image = preprocess(input_image).unsqueeze(0).numpy()
             # Check to see if the batch list is None
             if batch is None:
                 batch = image
@@ -74,20 +64,18 @@ def classify_process():
         # Check to see if we need to process the batch
         if len(imageIDs) > 0:
             # Classify the batch
-            print("* Batch size: {}".format(batch.shape))
+            logging.info("* Batch size: {}".format(batch.shape))
             preds = loaded_model.predict(batch)
-            results = imagenet_utils.decode_predictions(preds)
-
-            # Loop over the image IDs and their corresponding set of results from our model
-            for (imageID, resultSet) in zip(imageIDs, results):
+            for (imageID, result) in zip(imageIDs, preds): 
                 # Initialize the list of output predictions
                 output = []
 
-                # Loop over the results and add them to the list of output predictions
-                for (imagenetID, label, prob) in resultSet:
-                    r = {"label": label, "probability": float(prob)}
+                probabilities = torch.nn.functional.softmax(torch.tensor(result), dim=0)
+                top5_prob, top5_catid = torch.topk(probabilities, 5)
+                for i in range(top5_prob.size(0)):
+                    r = {"label": categories[top5_catid[i]], "probability": top5_prob[i].item()}
                     output.append(r)
-
+                
                 # Store the output predictions in the database, using image ID as the key so we can fetch the results
                 db.set(imageID, json.dumps(output))
 

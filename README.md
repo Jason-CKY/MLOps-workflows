@@ -2,6 +2,10 @@
 
 This repository contains workflows to version data with dvc, store models with Mlflow, deploy them with a scalable deployment architecture.
 
+## Quickstart
+
+Run `make deploy`. `pytorch` container will take a while to complete as it has to download pretrained pytorch models. Modelserver will only be deployed after `pytorch` container has finished uploading models into Mlflow.
+
 ## Content Page
 
 * [The Stack](#the-stack)
@@ -70,7 +74,7 @@ Run `make start-grafana`
 
 #### Spin up deployment API service
 
-Run `make deploy-all`
+Run `make deploy`
 
 ### Test Service
 

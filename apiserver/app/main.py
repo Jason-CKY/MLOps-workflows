@@ -44,26 +44,10 @@ db = redis.StrictRedis(host=settings.redis_host)
 # Prometheus instrumentator
 instrument = Instrumentator()
 instrument.instrumentations.append(metrics.default())
-instrument.add(model_metrics_f1)
-instrument.add(model_metrics_precision)
-instrument.add(model_metrics_recall)
+# instrument.add(model_metrics_f1)
+# instrument.add(model_metrics_precision)
+# instrument.add(model_metrics_recall)
 instrument.instrument(app).expose(app)
-
-
-def prepare_image(image, target):
-    # If the image mode is not RGB, convert it
-    if image.mode != "RGB":
-        image = image.convert("RGB")
-
-    # Resize the input image and preprocess it
-    image = image.resize(target)
-    image = img_to_array(image)
-    image = np.expand_dims(image, axis=0)
-    image = imagenet_utils.preprocess_input(image)
-
-    # Return the processed image
-    return image
-
 
 @app.get("/", include_in_schema=False)
 def custom_docs():
@@ -79,16 +63,10 @@ def predict(request: Request, img_file: bytes=File(...)):
 
     if request.method == "POST":
         image = Image.open(io.BytesIO(img_file))
-        image = prepare_image(image,
-                              (settings.image_width, settings.image_height)
-                              )
-
-        # Ensure our NumPy array is C-contiguous as well, otherwise we won't be able to serialize it
-        image = image.copy(order="C")
 
         # Generate an ID for the classification then add the classification ID + image to the queue
         k = str(uuid.uuid4())
-        image = base64.b64encode(image).decode("utf-8")
+        image = base64.b64encode(img_file).decode("utf-8")
         d = {"id": k, "image": image}
         db.rpush(settings.redis_queue, json.dumps(d))
 

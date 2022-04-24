@@ -5,6 +5,11 @@ services:
     image: redis
     networks:
     - deployml_network
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 1s
+      timeout: 3s
+      retries: 5
 
   modelserver:
     build:
@@ -13,13 +18,22 @@ services:
     container_name: modelserver
     restart: on-failure
     depends_on:
-    - redis
+      redis:
+        condition: service_healthy
+      # resnet-client:
+      #   condition: service_completed_successfully
+    volumes:
+      - ./modelserver:/app
     networks:
     - deployml_network
     env_file:
     - ./config/env/common.env
     - ./config/env/dev.env
-
+    # command: >
+    #   bash -c "
+    #   sleep infinity
+    #   "
+      
   apiserver:
     build:
       context: .

@@ -1,5 +1,3 @@
-tensorflow
-keras
 Pillow
 redis
 mlflow

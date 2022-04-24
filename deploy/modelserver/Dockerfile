@@ -1,4 +1,4 @@
-FROM python:3.8-slim-buster
+FROM bitnami/pytorch:latest
 
 COPY ./deploy/modelserver/requirements.txt /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt
