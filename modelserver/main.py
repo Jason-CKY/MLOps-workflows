@@ -24,7 +24,19 @@ logging.info("Model downloaded")
 
 # Connect to Redis server
 db = redis.StrictRedis(host=os.environ.get("REDIS_HOST"))
+preprocess = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+])
 
+def prepare_image(img, shape):
+    img = Image.open(io.BytesIO(base64.b64decode(img)))
+    if img.mode != "RGB":
+        img = img.convert("RGB")
+    img = img.resize(shape)
+    img = preprocess(img).unsqueeze(0).numpy()
+    return img
+     
 def classify_process():
     # Continually poll for new images to classify
     while True:
@@ -39,17 +51,8 @@ def classify_process():
         for q in queue:
             # Deserialize the object and obtain the input image
             q = json.loads(q.decode("utf-8"))
-            
-            input_image = Image.open(io.BytesIO(base64.b64decode(q["image"])))
-            if input_image.mode != "RGB":
-                input_image = input_image.convert("RGB")
-            input_image = input_image.resize((int(os.environ.get("IMAGE_WIDTH")), int(os.environ.get("IMAGE_HEIGHT"))))
-            
-            preprocess = transforms.Compose([
-                transforms.ToTensor(),
-                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-            ])
-            image = preprocess(input_image).unsqueeze(0).numpy()
+            image = prepare_image(q['image'], (int(os.environ.get("IMAGE_WIDTH")), int(os.environ.get("IMAGE_HEIGHT"))))
+
             # Check to see if the batch list is None
             if batch is None:
                 batch = image
