@@ -11,9 +11,6 @@ import time
 import uuid
 import logging
 
-from keras.preprocessing.image import img_to_array
-from keras.applications import imagenet_utils
-import numpy as np
 from PIL import Image
 from pathlib import Path
 import redis
@@ -44,9 +41,9 @@ db = redis.StrictRedis(host=settings.redis_host)
 # Prometheus instrumentator
 instrument = Instrumentator()
 instrument.instrumentations.append(metrics.default())
-# instrument.add(model_metrics_f1)
-# instrument.add(model_metrics_precision)
-# instrument.add(model_metrics_recall)
+instrument.add(model_metrics_f1())    
+instrument.add(model_metrics_precision())
+instrument.add(model_metrics_recall())
 instrument.instrument(app).expose(app)
 
 @app.get("/", include_in_schema=False)

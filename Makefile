@@ -38,19 +38,25 @@ destroy-mlflow:	## Destroy mlflow deployment via docker-compose with volumes
 	docker-compose --env-file config/mlflow/creds.env -f docker-compose-mlflow.yml down -v
 
 .PHONY: deploy
-deploy:		## deploy api with models in mlflow
+deploy:		## deploy api with models in mlflow and monitoring deployed
 	docker-compose --env-file config/mlflow/creds.env \
 	-f docker-compose-mlflow.yml \
-	-f docker-compose.yml up --build -d
+	-f docker-compose.yml \
+	-f docker-compose-monitoring.yml \
+	up --build -d
 
 .PHONY: destroy
 destroy:		## Bring down all hosted services with their volumes
 	docker-compose --env-file config/mlflow/creds.env \
 	-f docker-compose-mlflow.yml \
-	-f docker-compose.yml down -v
+	-f docker-compose.yml \
+	-f docker-compose-monitoring.yml \
+	down -v
 
 .PHONY: get-config
 get-config:		## Get config by combining all the docker-compose files by running docker-compose config
 	docker-compose --env-file config/mlflow/creds.env \
 	-f docker-compose-mlflow.yml \
-	-f docker-compose.yml config > config.yaml
+	-f docker-compose.yml  \
+	-f docker-compose-monitoring.yml \
+	config > config.yaml
