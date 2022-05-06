@@ -3,7 +3,7 @@ name: formatting
 on: 
   push:
     branches: 
-      - 'main'
+      - '*'
 
 jobs:
   format:

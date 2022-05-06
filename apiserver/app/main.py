@@ -24,7 +24,6 @@ from app.core.settings import settings
 from app.core.custom_metrics import model_metrics_f1, model_metrics_precision, model_metrics_recall
 from prometheus_fastapi_instrumentator import Instrumentator, metrics
 
-
 logger = logging.getLogger(settings.app_name)
 
 app = FastAPI(
@@ -34,25 +33,33 @@ app = FastAPI(
     docs_url=None,
     redoc_url=None
 )
-app.mount('/static', StaticFiles(directory=Path(__file__).parent / 'static'), name='static')
+app.mount(
+    '/static',
+    StaticFiles(directory=Path(__file__).parent / 'static'),
+    name='static'
+)
 
 db = redis.StrictRedis(host=settings.redis_host)
+
 
 class EndpointFilter(logging.Filter):
     # Uvicorn endpoint access log filter
     def filter(self, record: logging.LogRecord) -> bool:
         return record.getMessage().find("GET /metrics") == -1
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
 logging.getLogger("uvicorn.access").addFilter(EndpointFilter())
 
 # Prometheus instrumentator
-instrument = Instrumentator(should_instrument_requests_inprogress=True, inprogress_labels=True)
+instrument = Instrumentator(
+    should_instrument_requests_inprogress=True, inprogress_labels=True
+)
 instrument.instrumentations.append(metrics.default())
 instrument.add(model_metrics_f1())
 instrument.add(model_metrics_precision())
 instrument.add(model_metrics_recall())
 instrument.instrument(app).expose(app, include_in_schema=False)
+
 
 @app.get("/", include_in_schema=False)
 def custom_docs():
@@ -62,8 +69,9 @@ def custom_docs():
         swagger_favicon_url='/static/logo.png'
     )
 
+
 @app.post("/predict")
-def predict(request: Request, img_file: bytes=File(...)):
+def predict(request: Request, img_file: bytes = File(...)):
     data = {"success": False}
 
     if request.method == "POST":
@@ -99,7 +107,12 @@ def predict(request: Request, img_file: bytes=File(...)):
             # Indicate that the request was a success
             data["success"] = True
         else:
-            raise HTTPException(status_code=400, detail="Request failed after {} tries".format(settings.client_max_tries))
+            raise HTTPException(
+                status_code=400,
+                detail="Request failed after {} tries".format(
+                    settings.client_max_tries
+                )
+            )
 
     # Return the data dictionary as a JSON response
     return data

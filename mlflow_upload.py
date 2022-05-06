@@ -16,14 +16,14 @@ def upload_model():
     model_name = 'imagenet'
     client = MlflowClient()
     model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18', pretrained=True)
-    with mlflow.start_run() as run, tempfile.TemporaryDirectory() as tmp_dir:
+    with mlflow.start_run() as _, tempfile.TemporaryDirectory() as tmp_dir:
         tmp_path = os.path.join(tmp_dir, "imagenet_classes.txt")
         resp = requests.get("https://raw.githubusercontent.com/pytorch/hub/master/imagenet_classes.txt")
         save_text(tmp_path, resp.text)
         mlflow.log_artifact(tmp_path)
         mlflow.pytorch.log_model(model, "resnet18-imagenet", registered_model_name=model_name)
 
-    with mlflow.start_run() as run, tempfile.TemporaryDirectory() as tmp_dir:
+    with mlflow.start_run() as _, tempfile.TemporaryDirectory() as tmp_dir:
         tmp_path = os.path.join(tmp_dir, "imagenet_classes.txt")
         resp = requests.get("https://raw.githubusercontent.com/pytorch/hub/master/imagenet_classes.txt")
         save_text(tmp_path, resp.text)
