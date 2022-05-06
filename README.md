@@ -1,5 +1,7 @@
 # MLOps Workflows
 
+[![formatting](https://github.com/Jason-CKY/MLOps-workflows/actions/workflows/formatting.yaml/badge.svg)](https://github.com/Jason-CKY/MLOps-workflows/actions/workflows/formatting.yaml)
+
 This repository contains workflows to version data with dvc, store models with Mlflow, deploy them with a scalable deployment architecture.
 
 ## Quickstart
