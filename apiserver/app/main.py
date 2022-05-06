@@ -38,13 +38,21 @@ app.mount('/static', StaticFiles(directory=Path(__file__).parent / 'static'), na
 
 db = redis.StrictRedis(host=settings.redis_host)
 
+class EndpointFilter(logging.Filter):
+    # Uvicorn endpoint access log filter
+    def filter(self, record: logging.LogRecord) -> bool:
+        return record.getMessage().find("GET /metrics") == -1
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.getLogger("uvicorn.access").addFilter(EndpointFilter())
+
 # Prometheus instrumentator
-instrument = Instrumentator()
+instrument = Instrumentator(should_instrument_requests_inprogress=True, inprogress_labels=True)
 instrument.instrumentations.append(metrics.default())
-instrument.add(model_metrics_f1())    
+instrument.add(model_metrics_f1())
 instrument.add(model_metrics_precision())
 instrument.add(model_metrics_recall())
-instrument.instrument(app).expose(app)
+instrument.instrument(app).expose(app, include_in_schema=False)
 
 @app.get("/", include_in_schema=False)
 def custom_docs():

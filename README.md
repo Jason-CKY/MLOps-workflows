@@ -56,6 +56,14 @@ Notes:
 
 The FastAPI service exposes a prometheus metrics endpoint and grafana is used to create a dashboard to monitor the health of the various deployed services.
 
+### Template dashboard
+
+Included in this repo is a template of API metrics exposed by `prometheus-fastapi-instrumentator` library, as well as custom model metrics like precision, recall and F1 scores.
+
+![API metrics](assets/grafana_default_metrics.png)
+
+![Model metrics](assets/grafana_model_custom_metrics.png)
+
 ## Deploying Services
 
 ### Prerequisites
@@ -99,7 +107,6 @@ The `--no-web` flag runs locust in CLI mode. You may also want to use locust's w
 ## TODOs
 
 * Add lint and pyflakes as CI workflow
-* Create a base monitoring dashboard.json file as a template
 * Make sure locust test works
 * Add Kubernetes deployment files
 * Add DVC Integration with github workflows

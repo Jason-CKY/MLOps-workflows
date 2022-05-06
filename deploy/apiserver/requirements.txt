@@ -1,5 +1,6 @@
-tensorflow
-keras
+fastapi
+pydantic
+uvicorn
 Pillow
 redis
 prometheus-fastapi-instrumentator
