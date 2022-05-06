@@ -100,15 +100,19 @@ You should see the predictions returned as a JSON response.
 
 We can use [locust](https://locust.io) and the included `locustfile.py` to load test our service. Run the following command to spin up `20` concurrent users immediately:
 
+Requirements:
+
 ```bash
-locust --host=http://localhost --no-web -c 20 -r 20
+pip install locust
 ```
 
-The `--no-web` flag runs locust in CLI mode. You may also want to use locust's web interface with all its pretty graphs, if so, just run `local --host=http://localhost`.
+```bash
+locust --host=http://localhost --headless -u 20 -r 20
+```
+
+The `--headless` flag runs locust in CLI mode. You may also want to use locust's web interface with all its pretty graphs, if so, just run `locust locust --host=http://localhost -u 20 -r 20`.
 
 ## TODOs
 
-* Add lint and pyflakes as CI workflow
-* Make sure locust test works
 * Add Kubernetes deployment files
 * Add DVC Integration with github workflows

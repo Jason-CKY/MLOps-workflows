@@ -1,14 +1,10 @@
-from locust import HttpLocust, TaskSet, task
+from locust import HttpUser, task, between
 
+class HelloWorldUser(HttpUser):
+    wait_time = between(0.5, 500)
 
-class UserBehavior(TaskSet):
     @task
     def predict(self):
-        with open('doge.png', 'rb') as image:
+        with open('doge.jpg', 'rb') as image:
             self.client.post('/predict', files={'img_file': image})
 
-
-class WebsiteUser(HttpLocust):
-    task_set = UserBehavior
-    min_wait = 500
-    max_wait = 5000
