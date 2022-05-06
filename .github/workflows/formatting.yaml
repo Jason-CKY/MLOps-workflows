@@ -1,0 +1,20 @@
+name: formatting
+
+on: 
+  push:
+    branches: 
+      - 'main'
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: lint
+        run: |
+          make lint
+      - name: pyflakes
+        run: |
+          make pyflakes
+    
