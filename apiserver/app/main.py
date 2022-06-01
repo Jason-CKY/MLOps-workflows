@@ -24,7 +24,7 @@ from app.core.settings import settings
 from app.core.custom_metrics import model_metrics_f1, model_metrics_precision, model_metrics_recall
 from prometheus_fastapi_instrumentator import Instrumentator, metrics
 
-logger = logging.getLogger(settings.app_name)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title=settings.app_name,
