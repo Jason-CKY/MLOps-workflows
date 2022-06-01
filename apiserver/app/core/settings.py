@@ -20,7 +20,8 @@ class Settings(BaseSettings):
     image_height: int = int(os.getenv('IMAGE_HEIGHT', '224'))
 
     log_level: str = os.getenv('LOG_LEVEL', 'DEBUG')
-    
+
+
 settings = Settings(
     app_description=(Path(__file__).parent.parent /
                      'static/docs.md').read_text(encoding='utf-8')
@@ -29,5 +30,6 @@ settings = Settings(
 # configure project-specific logger
 logging.basicConfig(
     level=settings.log_level,
-    format='%(asctime)s - %(name)s:%(funcName)s:%(lineno)d - %(levelname)s - %(message)s'
+    format=
+    '%(asctime)s - %(name)s:%(funcName)s:%(lineno)d - %(levelname)s - %(message)s'
 )
